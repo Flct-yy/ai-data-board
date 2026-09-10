@@ -1,9 +1,38 @@
 @import "tailwindcss";
 
 @theme {
-  /* 颜色配置 */
+  /* 颜色配置（brand 色系） */
   --color-brand-50: #f5f0ff;
   --color-brand-500: #7c3aed;
   --color-brand-600: #6d28d9;
   --color-brand-700: #5b21b6;
+
+  /* 背景/前景色，自动导出为 CSS 变量 --color-background / --color-foreground */
+  --color-background: #ffffff;
+  --color-foreground: #171717;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
+/* 流式图表渐进出现的动画 */
+@keyframes chart-grow {
+  from {
+    opacity: 0.4;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.chart-streaming {
+  animation: chart-grow 0.3s ease-out;
 }
