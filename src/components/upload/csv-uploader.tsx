@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { WorkerMessage } from "@/lib/csv/parser.worker";
 import type { CsvSchema } from "@/types";
 
 interface Props {
@@ -23,36 +22,6 @@ export function CsvUploader({ loading, setLoading, onUploaded }: Props) {
     setError("");
     setLoading(true);
     setProgress(0);
-
-    const worker = new Worker(new URL("@/lib/csv/parser.worker.ts", import.meta.url));
-
-    try {
-      const { schema, rows }: { schema: CsvSchema; rows: Record<string, unknown>[] } =
-        await new Promise((resolve, reject) => {
-          worker.onmessage = (e: MessageEvent<WorkerMessage>) => {
-            const msg = e.data;
-            if (msg.type === "progress") setProgress(msg.rowCount);
-            else if (msg.type === "done") resolve({ schema: msg.schema, rows: msg.rows });
-            else if (msg.type === "error") reject(new Error(msg.error));
-          };
-          worker.postMessage(file);
-        });
-
-      const res = await fetch("/api/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ csvSchema: schema, rows }),
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-
-      onUploaded(data.id);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "解析失败");
-      setLoading(false);
-    } finally {
-      worker.terminate();
-    }
   }
 
   return (
