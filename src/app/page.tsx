@@ -1,9 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { CsvUploader } from "@/components/upload/csv-uploader";
 
 export default function HomePage() {
   const router = useRouter();
+  const [loading, setLoading] = useState<boolean>(false);
+  const [sessionId, setSessionId] = useState<string>();
+
+  const onUploaded = (id: string) => {
+    setSessionId(id);
+    router.push(`/sessions/${id}`);
+  };
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
@@ -13,6 +22,12 @@ export default function HomePage() {
           上传 CSV，用自然语言提问，AI 流式出分析 + 可交互图表
         </p>
       </header>
+
+      <CsvUploader
+        loading={loading}
+        setLoading={setLoading}
+        onUploaded={onUploaded}
+      />
 
       <section className="mt-10">
         <h2 className="mb-3 text-sm font-medium text-gray-500">试试这些问题</h2>
