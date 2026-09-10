@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme {
+  /* 颜色配置 */
+  --color-brand-50: #f5f0ff;
+  --color-brand-500: #7c3aed;
+  --color-brand-600: #6d28d9;
+  --color-brand-700: #5b21b6;
+}
