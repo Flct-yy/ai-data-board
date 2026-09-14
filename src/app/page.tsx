@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CsvUploader } from "@/components/upload/csv-uploader";
+import { UserMenu } from "@/components/auth/user-menu";
 
 export default function HomePage() {
   const router = useRouter();
@@ -26,6 +27,10 @@ export default function HomePage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
+      <div className="mb-6 flex justify-end">
+        <UserMenu />
+      </div>
+
       <header className="mb-10 text-center">
         <h1 className="text-3xl font-bold tracking-tight">AI 数据分析看板</h1>
         <p className="mt-2 text-gray-500">上传 CSV，用自然语言提问，AI 流式出分析 + 可交互图表</p>
