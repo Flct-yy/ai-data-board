@@ -31,7 +31,6 @@ export function CsvUploader({ loading, setLoading, onUploaded }: Props) {
         await new Promise((resolve, reject) => {
           worker.onmessage = (e: MessageEvent<WorkerMessage>) => {
             const msg = e.data;
-            console.log("worker message:", msg);
             if (msg.type === "progress") setProgress(msg.rowCount);
             else if (msg.type === "done") resolve({ schema: msg.schema, rows: msg.rows });
             else if (msg.type === "error") reject(new Error(msg.error));
