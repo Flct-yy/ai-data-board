@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CsvUploader } from "@/components/upload/csv-uploader";
 
@@ -13,6 +13,13 @@ export default function HomePage() {
     setSessionId(sessionId);
     router.push(`/analyze/${sessionId}`);
   };
+
+  const questions = useMemo(() => [
+    "分析各区域销售占比",
+    "画出月度趋势并预测下季度",
+    "找出异常波动的品类",
+    "分析各品类销售占比",
+  ], []);
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
@@ -32,15 +39,13 @@ export default function HomePage() {
       <section className="mt-10">
         <h2 className="mb-3 text-sm font-medium text-gray-500">试试这些问题</h2>
         <ul className="grid gap-2 text-sm text-gray-600">
-          <li className="rounded-lg border border-gray-200 p-3">
-            分析各区域销售占比
-          </li>
-          <li className="rounded-lg border border-gray-200 p-3">
-            画出月度趋势并预测下季度
-          </li>
-          <li className="rounded-lg border border-gray-200 p-3">
-            找出异常波动的品类
-          </li>
+          {questions.map((question, index) => (
+            <li
+              key={index}
+              className="rounded-lg border border-gray-200 p-3">
+              {question}
+            </li>
+          ))}
         </ul>
       </section>
     </main>
