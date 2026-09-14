@@ -9,9 +9,9 @@ export default function HomePage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [sessionId, setSessionId] = useState<string>();
 
-  const onUploaded = (id: string) => {
-    setSessionId(id);
-    router.push(`/sessions/${id}`);
+  const onUploaded = (sessionId: string) => {
+    setSessionId(sessionId);
+    router.push(`/analyze/${sessionId}`);
   };
 
   return (
