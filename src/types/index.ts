@@ -19,3 +19,34 @@ export interface Session {
   csv_schema: CsvSchema | null;
   created_at: string;
 }
+
+export type ChartType = 'bar' | 'line' | 'pie' | 'scatter' | 'area';
+
+/** LLM 输出的图表规格，经 Zod 校验后喂给 Recharts */
+export interface ChartSpec {
+  type: ChartType;
+  title: string;
+  data: Array<Record<string, number | string>>;
+  xKey?: string;
+  yKey?: string;
+  series?: string[];
+  description?: string;
+}
+
+/** 单步工具调用轨迹，用于 tool-trace 可视化 */
+export interface ToolStep {
+  id: string;
+  name: string;
+  args: Record<string, unknown>;
+  result?: string;
+  status: 'running' | 'done' | 'error';
+}
+
+export interface AnalysisReport {
+  id: string;
+  session_id: string;
+  question: string;
+  answer: string;
+  chart_specs: ChartSpec[];
+  created_at: string;
+}
