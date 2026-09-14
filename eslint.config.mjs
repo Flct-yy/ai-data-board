@@ -23,7 +23,6 @@ export default defineConfig([
       },
     },
   },
-  // 放最后，关闭和prettier冲突的eslint格式化规则
   prettier,
   globalIgnores([".next/**", "out/**", "node_modules/**", "dist/**"]),
 ]);
