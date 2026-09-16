@@ -1,6 +1,6 @@
 export interface CsvColumn {
   name: string;
-  type: 'number' | 'string' | 'date' | 'boolean';
+  type: "number" | "string" | "date" | "boolean";
   sample: unknown[];
 }
 
@@ -20,15 +20,15 @@ export interface Session {
   created_at: string;
 }
 
-export type ChartType = 'bar' | 'line' | 'pie' | 'scatter' | 'area';
+export type ChartType = "bar" | "line" | "pie" | "scatter" | "area";
 
 /** LLM 输出的图表规格，经 Zod 校验后喂给 Recharts */
 export interface ChartSpec {
   type: ChartType;
   title: string;
   data: Array<Record<string, number | string>>;
-  xKey?: string;
-  yKey?: string;
+  xKey: string;
+  yKey: string;
   series?: string[];
   description?: string;
 }
@@ -39,7 +39,7 @@ export interface ToolStep {
   name: string;
   args: Record<string, unknown>;
   result?: string;
-  status: 'running' | 'done' | 'error';
+  status: "running" | "done" | "error";
 }
 
 export interface AnalysisReport {
