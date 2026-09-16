@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+import { InteractiveChart } from "./interactive-chart";
 import type { ChartSpec } from "@/types";
 
 interface Props {
@@ -16,9 +18,15 @@ interface Props {
  * finalSpec 到达后停止流式，渲染最终图。
  * 核心亮点：不卡半秒白屏，数据越多图越完整。
  */
-export function StreamingChart({ finalSpec, onSelectRange }: Props) {
-  if (!finalSpec) {
+export function StreamingChart({ streamingJson, finalSpec, onSelectRange }: Props) {
+  const spec = useMemo<ChartSpec | null>(() => {
+    if (finalSpec) return finalSpec;
+    return null;
+  }, [streamingJson, finalSpec]);
+
+  if (!spec) {
     return null;
   }
-  return <div>{JSON.stringify(finalSpec, null, 2)}</div>;
+
+  return <InteractiveChart spec={spec} streaming={!finalSpec} onSelectRange={onSelectRange} />;
 }
