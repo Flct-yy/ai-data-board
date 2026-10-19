@@ -41,6 +41,7 @@ export function CsvUploader({ loading, setLoading, onUploaded }: Props) {
       const res = await fetch("/api/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ csvSchema: schema, rows }),
       });
       const data = await res.json();
