@@ -1,7 +1,15 @@
-import { openai } from "@ai-sdk/openai";
+import { createOpenAI } from "@ai-sdk/openai";
+import { deepSeek } from "@ai-sdk/deepseek";
 import { embed, generateObject } from "ai";
 import { z } from "zod";
 import { createClient } from "@/utils/supabase/client";
+
+// DeepSeek 的 embedding API 完全 OpenAI 兼容（同 baseURL），
+// 用 createOpenAI 覆盖 baseURL + apiKey 即可复用 AI SDK 的 embed()
+const deepseekEmbed = createOpenAI({
+  apiKey: process.env.DEEPSEEK_API_KEY ?? "",
+  baseURL: "https://api.deepseek.com",
+}).embedding("deepseek-embed");
 
 interface ChunkRow {
   id: string;
@@ -13,7 +21,7 @@ interface ChunkRow {
 /** 查询改写：把用户问题拆成多个检索 query，提高召回 */
 export async function rewriteQuery(question: string): Promise<string[]> {
   const { object } = await generateObject({
-    model: openai("gpt-4o-mini"),
+    model: deepSeek("deepseek-flash"),
     schema: z.object({
       queries: z.array(z.string()).min(1).max(3),
     }),
@@ -25,11 +33,10 @@ export async function rewriteQuery(question: string): Promise<string[]> {
 /** 向量召回：每个 query 各取 topK，合并去重按相似度排序 */
 export async function retrieveChunks(queries: string[], topK = 5): Promise<ChunkRow[]> {
   const supabase = createClient();
-  const embeddingModel = openai.embedding("text-embedding-3-small");
 
   const perQuery = await Promise.all(
     queries.map(async q => {
-      const { embedding } = await embed({ model: embeddingModel, value: q });
+      const { embedding } = await embed({ model: deepseekEmbed, value: q });
       const { data } = await supabase.rpc("match_reports", {
         query_embedding: embedding,
         match_count: topK,
@@ -72,22 +79,15 @@ export async function indexReport(
   sessionId: string,
   content: string
 ): Promise<void> {
-  try {
-    const supabase = createClient();
-    const chunkText = content.slice(0, 8000);
-    const { embedding } = await embed({
-      model: openai.embedding("text-embedding-3-small"),
-      value: chunkText,
-    });
-    await supabase.from("report_chunks").insert({
-      report_id: reportId,
-      session_id: sessionId,
-      content,
-      embedding,
-    });
-    console.log(`向量入库成功 reportId=${reportId}`);
-  } catch (err) {
-    console.error("indexReport 向量入库失败：", err);
-    // 不抛出异常，主业务流程继续
-  }
+  const supabase = createClient();
+  const { embedding } = await embed({
+    model: deepseekEmbed,
+    value: content.slice(0, 8000),
+  });
+  await supabase.from("report_chunks").insert({
+    report_id: reportId,
+    session_id: sessionId,
+    content,
+    embedding,
+  });
 }
