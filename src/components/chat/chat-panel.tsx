@@ -49,6 +49,21 @@ export function ChatPanel({ sessionId, csvSchema }: Props) {
     setCharts(specs);
   }, [messages]);
 
+  // 当前正在流式输入的 tool part（取最新一条即可）
+  const streamingChunk = (() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.role !== "assistant" || !m.parts) continue;
+      for (const part of m.parts) {
+        if (part.type === "tool-make_chart" && part.state === "input-streaming") {
+          // 字段名以你的 AI SDK 版本为准：inputText / argsText / input
+          return (part as any).inputText ?? (part as any).argsText ?? "";
+        }
+      }
+    }
+    return null;
+  })();
+
   const onSelectRange = useCallback((range: { xKey: string; values: string[] }) => {
     setInput(`请重点分析 ${range.xKey} 为 ${range.values.join("、")} 的数据，解释原因`);
   }, []);
@@ -71,7 +86,7 @@ export function ChatPanel({ sessionId, csvSchema }: Props) {
               问点什么开始分析吧，例如「分析各区域销售占比」
             </div>
           )}
-          {messages.map(m => {
+          {messages.map((m, index) => {
             const textParts = m.parts
               ?.filter(p => p.type === "text")
               .map(p => p.text)
@@ -80,7 +95,7 @@ export function ChatPanel({ sessionId, csvSchema }: Props) {
             const toolParts = m.parts?.filter(isToolPart) ?? [];
 
             return (
-              <div key={m.id} className={m.role === "user" ? "text-right" : ""}>
+              <div key={m.id + index} className={m.role === "user" ? "text-right" : ""}>
                 <div
                   className={`inline-block max-w-[90%] rounded-lg px-3 py-2 text-sm ${
                     m.role === "user"
@@ -114,7 +129,11 @@ export function ChatPanel({ sessionId, csvSchema }: Props) {
 
       {/* 图表区 */}
       <div className="w-1/2 space-y-3 overflow-y-auto">
-        {charts.length === 0 ? (
+        {streamingChunk != null && (
+          <StreamingChart streamingJsonChunk={streamingChunk} onSelectRange={onSelectRange} />
+        )}
+
+        {charts.length === 0 && streamingChunk == null ? (
           <div className="flex h-full items-center justify-center text-sm text-gray-400">
             图表区：AI 生成的图表会在这里出现，可点击柱子圈选续问
           </div>
