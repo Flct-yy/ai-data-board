@@ -64,7 +64,7 @@ create table if not exists report_chunks (
   report_id uuid not null references reports(id) on delete cascade,
   session_id uuid not null references sessions(id) on delete cascade,
   content text not null,
-  embedding vector(1536),
+  embedding vector(1024),
   created_at timestamptz not null default now()
 );
 
@@ -74,10 +74,13 @@ create index if not exists report_chunks_embedding_idx
   on report_chunks using hnsw (embedding vector_cosine_ops);
 
 drop function if exists match_reports(vector, int, uuid);
+drop function if exists match_reports(vector(1024), int, uuid);
+drop function if exists match_reports(vector(1024), int);
 drop function if exists match_reports(vector, int);
+drop function if exists match_reports(vector(1536), int, uuid);
 
 create or replace function public.match_reports(
-  query_embedding public.vector(1536),
+  query_embedding public.vector(1024),
   match_count int default 5,
   filter_user_id uuid default null
 ) returns table (
