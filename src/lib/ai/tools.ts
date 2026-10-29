@@ -31,12 +31,15 @@ function aggregate(vals: number[], metric: Metric): number {
 export function createTools(rows: Record<string, unknown>[]) {
   return {
     run_stat: tool({
+      // 给模型看的描述
       description: "对数据跑统计（sum/avg/count/max/min）。可按某字段分组聚合。返回数值结果。",
+      // 输入参数的 schema
       inputSchema: z.object({
         metric: z.enum(["sum", "avg", "count", "max", "min"]).describe("要计算的指标"),
         groupBy: z.string().optional().describe("分组字段名，不填则全局聚合"),
         valueField: z.string().optional().describe("聚合的数值字段"),
       }),
+      // 执行函数
       execute: async ({ metric, groupBy, valueField }) => {
         if (!groupBy) {
           const vals = valueField
