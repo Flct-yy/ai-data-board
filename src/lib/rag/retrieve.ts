@@ -4,12 +4,12 @@ import { embed, generateObject } from "ai";
 import { z } from "zod";
 import { createClient } from "@/utils/supabase/client";
 
-// DeepSeek 的 embedding API 完全 OpenAI 兼容（同 baseURL），
-// 用 createOpenAI 覆盖 baseURL + apiKey 即可复用 AI SDK 的 embed()
-const deepseekEmbed = createOpenAI({
-  apiKey: process.env.DEEPSEEK_API_KEY ?? "",
-  baseURL: "https://api.deepseek.com",
-}).embedding("deepseek-embed");
+// BAAI/bge-m3 走硅基流动 SiliconFlow 的 OpenAI 兼容 embedding 端点，
+// 输出 1024 维，与迁移里 vector(1024) 对齐。
+const bgeEmbed = createOpenAI({
+  apiKey: process.env.BGE_API_KEY ?? "",
+  baseURL: "https://api.siliconflow.cn/v1",
+}).embedding("BAAI/bge-m3");
 
 interface ChunkRow {
   id: string;
@@ -36,7 +36,7 @@ export async function retrieveChunks(queries: string[], topK = 5): Promise<Chunk
 
   const perQuery = await Promise.all(
     queries.map(async q => {
-      const { embedding } = await embed({ model: deepseekEmbed, value: q });
+      const { embedding } = await embed({ model: bgeEmbed, value: q });
       const { data } = await supabase.rpc("match_reports", {
         query_embedding: embedding,
         match_count: topK,
@@ -81,7 +81,7 @@ export async function indexReport(
 ): Promise<void> {
   const supabase = createClient();
   const { embedding } = await embed({
-    model: deepseekEmbed,
+    model: bgeEmbed,
     value: content.slice(0, 8000),
   });
   await supabase.from("report_chunks").insert({
