@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 
 export function UserMenu() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,6 +40,9 @@ export function UserMenu() {
   return (
     <div className="flex items-center gap-3 text-sm">
       <span className="text-gray-500">{user.email}</span>
+      <button className="text-gray-500 cursor-pointer" onClick={() => router.push("/history")}>
+        历史记录
+      </button>
       <form action="/auth/signout" method="post">
         <button type="submit" className="text-gray-500 hover:text-brand-600">
           登出
