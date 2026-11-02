@@ -7,6 +7,10 @@ export const chartSpecSchema = z.object({
   data: z.array(z.record(z.string(), z.union([z.string(), z.number()]))),
   xKey: z.string().optional(),
   yKey: z.string().optional(),
+  xLabel: z.string().optional(),
+  yLabel: z.string().optional(),
+  xUnit: z.string().optional(),
+  yUnit: z.string().optional(),
   series: z.array(z.string()).optional(),
   description: z.string().optional(),
 });

@@ -27,10 +27,17 @@ export interface ChartSpec {
   type: ChartType;
   title: string;
   data: Array<Record<string, number | string>>;
-  xKey: string;
-  yKey: string;
+  /** 流式 partial spec 可能尚未到达，渲染时需做字段回退 */
+  xKey?: string;
+  yKey?: string;
   series?: string[];
   description?: string;
+  /** 轴标题，缺省回退到字段名 */
+  xLabel?: string;
+  yLabel?: string;
+  /** 轴单位，仅用于轴标题展示，如 元 / % / 人 */
+  xUnit?: string;
+  yUnit?: string;
 }
 
 /** 单步工具调用轨迹，用于 tool-trace 可视化 */

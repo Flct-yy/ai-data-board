@@ -25,6 +25,7 @@ ${schemaDesc}
 - bar/line/area: 必填 xKey, yKey
 - pie: 必填 nameKey, valueKey; data 每项 { name, value }
 - scatter: xKey 与 yKey 均须为数值列
+- 可选 xLabel/yLabel 填中文轴标题（缺省用字段名），xUnit/yUnit 填单位（如 元 / % / 人）
 - data 必须是最终数组（每项 { key: value }），≤ 50 项，禁止函数/占位符
 - 输出纯 JSON, 不要包 markdown 代码块
 
