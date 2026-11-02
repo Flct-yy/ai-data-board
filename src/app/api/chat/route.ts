@@ -12,6 +12,7 @@ import { createTools } from "@/lib/ai/tools";
 import { buildSystemPrompt } from "@/lib/ai/prompts";
 import { indexReport } from "@/lib/rag/retrieve";
 import type { CsvSchema, Session, ChartSpec } from "@/types";
+import type { UIMessage } from "ai";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -24,7 +25,10 @@ export const maxDuration = 60;
  */
 export async function POST(req: Request) {
   // 从请求体中提取消息和会话 ID
-  const { messages, sessionId } = await req.json();
+  const { messages, sessionId } = (await req.json()) as {
+    messages: UIMessage[];
+    sessionId: string;
+  };
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
@@ -35,13 +39,8 @@ export async function POST(req: Request) {
     .eq("id", sessionId)
     .single<Session>();
 
-  // 从数据库中获取历史消息最近 20 条消息
-  const { data: historyRows } = await supabase
-    .from("messages")
-    .select("role,content")
-    .eq("session_id", sessionId)
-    .order("created_at", { ascending: true })
-    .limit(20);
+  // 前端 useChat 会发送完整历史消息（来自 DB 恢复 + 本次新增），
+  // 服务端无需再按 DB 拉历史，直接用请求体里的 messages 作为模型上下文。
 
   // 从数据库中获取 CSV 数据
   const { data: csvData } = await supabase
@@ -60,31 +59,47 @@ export async function POST(req: Request) {
   const result = streamText({
     model: deepSeek("deepseek-flash"),
     // instructions 给模型看的 system prompt
-    // 包含历史消息 + CSV 行数据 + 工具描述
+    // 包含 CSV 行数据 + 工具描述
     instructions: buildSystemPrompt(csv),
-    messages: [
-      ...(historyRows ?? []).map(m => ({
-        role: m.role as "user" | "assistant" | "tool",
-        content: m.content,
-      })),
-      ...modelMessages,
-    ],
+    messages: modelMessages,
     tools,
     stopWhen: isStepCount(5), // ReAct 最多 5 轮 think-act-observe
     // 完成后：持久化消息 + 提取 chart spec 存报告 + 写入向量表供 RAG
     onEnd: async ({ text, toolResults }) => {
       try {
         // 从消息中提取用户问题
-        // 假设用户问题在消息列表的最后一条
-        const lastUser = messages[messages.length - 1];
-        const question = typeof lastUser?.content === "string" ? lastUser.content : "";
+        // 前端 useChat 发送的是 UIMessage[]，文本在 parts[].text 里（AI SDK v7 格式，无 .content 字段）。
+        // 取最后一条 role==="user" 的消息，拼接其所有 text part 作为问题。
+        const lastUser = [...messages].reverse().find(m => m.role === "user");
+        const question = lastUser?.parts
+          .filter((p): p is { type: "text"; text: string } => p.type === "text")
+          .map(p => p.text)
+          .join("")
+          .trim();
 
         // 持久化消息到数据库
         // 包含用户问题和模型回复
-        await supabase.from("messages").insert([
-          { session_id: sessionId, role: "user", content: question },
-          { session_id: sessionId, role: "assistant", content: text },
-        ]);
+        const messageRows = [
+          {
+            session_id: sessionId,
+            role: "user" as const,
+            content: question || "(empty question)",
+          },
+          { session_id: sessionId, role: "assistant" as const, content: text || "" },
+        ];
+        // 工具信息也落库：每条工具调用存一条 role='tool' 行（messages 表支持 tool 角色 + tool_call_id 列）。
+        // 用 JSON 序列化 input/output，便于调试与回放。
+        const toolRows = toolResults.map(tr => ({
+          session_id: sessionId,
+          role: "tool" as const,
+          content: JSON.stringify({
+            toolName: tr.toolName,
+            input: tr.input,
+            output: tr.output,
+          }),
+          tool_call_id: tr.toolCallId ?? null,
+        }));
+        await supabase.from("messages").insert([...messageRows, ...toolRows]);
 
         // 提取 chart spec 到数据库
         // 从所有 toolResults 里提取 make_chart 的 output
