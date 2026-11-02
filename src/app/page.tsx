@@ -26,13 +26,13 @@ export default function HomePage() {
   );
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-3xl px-4 py-12 md:py-16">
       <div className="mb-6 flex justify-end">
         <UserMenu />
       </div>
 
       <header className="mb-10 text-center">
-        <h1 className="text-3xl font-bold tracking-tight">AI 数据分析看板</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">AI 数据分析看板</h1>
         <p className="mt-2 text-gray-500">上传 CSV，用自然语言提问，AI 流式出分析 + 可交互图表</p>
       </header>
 
@@ -42,7 +42,10 @@ export default function HomePage() {
         <h2 className="mb-3 text-sm font-medium text-gray-500">试试这些问题</h2>
         <ul className="grid gap-2 text-sm text-gray-600">
           {questions.map((question, index) => (
-            <li key={index} className="rounded-lg border border-gray-200 p-3">
+            <li
+              key={index}
+              className="card cursor-default p-3 text-gray-600 transition-colors hover:border-brand-200 hover:bg-brand-50/30"
+            >
               {question}
             </li>
           ))}

@@ -20,6 +20,7 @@ export default defineConfig([
     settings: {
       tailwindcss: {
         config: "./tailwind.config.js",
+        cssFiles: ["./src/app/globals.css"],
       },
     },
   },

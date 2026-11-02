@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import type { AnalysisReport } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -7,29 +8,85 @@ export const dynamic = "force-dynamic";
 export default async function HistoryPage() {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
-  const { data: reports } = await supabase
+
+  // 1. getSession 只读本地 cookie（不发网络请求）—— 唯一可靠的"是否登录"判断
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) redirect("/login");
+
+  // 2. getUser 需要网络请求；失败时不跳转，用 session.user 兜底
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError) {
+    console.warn("[history] getUser failed, falling back to session.user:", userError.message);
+  }
+
+  const { data: reports, error } = await supabase
     .from("reports")
     .select("*")
     .order("created_at", { ascending: false })
     .limit(50);
 
+  const isEmpty = !reports || reports.length === 0;
+
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="mb-6 text-2xl font-bold">历史分析报告</h1>
-      <ul className="space-y-3">
-        {(reports as AnalysisReport[] | null)?.map(r => (
-          <li key={r.id} className="rounded-lg border border-gray-200 p-4">
-            <p className="font-medium">{r.question}</p>
-            <p className="mt-1 line-clamp-2 text-sm text-gray-500">{r.answer}</p>
-            <time className="mt-2 block text-xs text-gray-400">
-              {new Date(r.created_at).toLocaleString("zh-CN")}
-            </time>
-          </li>
-        ))}
-        {(!reports || reports.length === 0) && (
-          <li className="text-sm text-gray-400">还没有分析报告</li>
-        )}
-      </ul>
+      <header className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">历史分析报告</h1>
+        <p className="mt-1 text-sm text-gray-500">查看过往的分析记录与结论</p>
+      </header>
+
+      {error && (
+        <div className="alert-error mb-6">
+          <span className="font-medium">加载报告失败</span>
+          <span className="ml-1 opacity-80">：{error.message}</span>
+        </div>
+      )}
+
+      {!error && isEmpty && (
+        <div className="empty-state min-h-[200px]">
+          <svg
+            className="mb-3 h-10 w-10 text-gray-300"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <p className="text-gray-500">还没有分析报告</p>
+          <a
+            href="/"
+            className="mt-2 text-sm text-brand-600 underline underline-offset-2 hover:text-brand-700"
+          >
+            上传 CSV 开始第一次分析 →
+          </a>
+        </div>
+      )}
+
+      {!isEmpty && (
+        <ul className="space-y-3">
+          {(reports as AnalysisReport[])?.map(r => (
+            <li
+              key={r.id}
+              className="card cursor-pointer p-4 transition-all hover:border-brand-300 hover:shadow-card-hover"
+            >
+              <p className="font-medium text-gray-900">{r.question}</p>
+              <p className="mt-1.5 line-clamp-2 text-sm text-gray-500">{r.answer}</p>
+              <time className="mt-2.5 block text-xs text-gray-400">
+                {new Date(r.created_at).toLocaleString("zh-CN")}
+              </time>
+            </li>
+          ))}
+        </ul>
+      )}
     </main>
   );
 }

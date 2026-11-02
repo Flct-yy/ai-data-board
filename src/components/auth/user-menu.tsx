@@ -31,20 +31,29 @@ export function UserMenu() {
 
   if (!user) {
     return (
-      <a href="/login" className="text-sm text-brand-600 hover:underline">
+      <a
+        href="/login"
+        className="text-sm font-medium text-brand-600 transition-colors hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded"
+      >
         登录
       </a>
     );
   }
 
   return (
-    <div className="flex items-center gap-3 text-sm">
-      <span className="text-gray-500">{user.email}</span>
-      <button className="text-gray-500 cursor-pointer" onClick={() => router.push("/history")}>
+    <div className="flex flex-wrap items-center gap-3 text-sm">
+      <span className="truncate text-gray-500">{user.email}</span>
+      <button
+        className="text-gray-500 transition-colors hover:text-brand-600 focus-visible:outline-none focus-visible:text-brand-600"
+        onClick={() => router.push("/history")}
+      >
         历史记录
       </button>
       <form action="/auth/signout" method="post">
-        <button type="submit" className="text-gray-500 hover:text-brand-600">
+        <button
+          type="submit"
+          className="text-gray-500 transition-colors hover:text-brand-600 focus-visible:outline-none focus-visible:text-brand-600"
+        >
           登出
         </button>
       </form>

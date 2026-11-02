@@ -3,13 +3,34 @@
 @theme {
   /* 颜色配置（brand 色系） */
   --color-brand-50: #f5f0ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
   --color-brand-500: #7c3aed;
   --color-brand-600: #6d28d9;
   --color-brand-700: #5b21b6;
 
-  /* 背景/前景色，自动导出为 CSS 变量 --color-background / --color-foreground */
-  --color-background: #ffffff;
+  /* 阴影层级 */
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
+  --shadow-card-hover: 0 4px 8px rgba(16, 24, 40, 0.08), 0 2px 4px rgba(16, 24, 40, 0.04);
+  --shadow-dropdown: 0 8px 16px -4px rgba(16, 24, 40, 0.12), 0 4px 8px -2px rgba(16, 24, 40, 0.08);
+
+  /* 背景/前景色 */
+  --color-background: #fafafa;
   --color-foreground: #171717;
+
+  --animate-bounce-high: bounce-high 1s infinite;
+
+  @keyframes bounce-high {
+    0%,
+    100% {
+      transform: translateY(-100%);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+    50% {
+      transform: translateY(0);
+      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+  }
 }
 
 * {
@@ -21,7 +42,69 @@ body {
   color: var(--color-foreground);
 }
 
-/* 流式图表渐进出现的动画 */
+/* ============================================================
+   可复用组件类（@layer components 保证优先级在 utilities 之下）
+   ============================================================ */
+@layer components {
+  /* 卡片容器：统一的边框 + 圆角 + 背景 + 微阴影 */
+  .card {
+    @apply rounded-xl border border-gray-200 bg-white shadow-card;
+  }
+
+  /* 主按钮 */
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-brand-700 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-sm;
+  }
+
+  /* 次按钮：ghost 风格 */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* 小型按钮（图表卡片里用） */
+  .btn-small-primary {
+    @apply inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500;
+  }
+
+  .btn-small-secondary {
+    @apply inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-600 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500;
+  }
+
+  /* 表单输入框 */
+  .input {
+    @apply w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20;
+  }
+
+  /* 聊天气泡 - 用户 */
+  .bubble-user {
+    @apply inline-block max-w-[90%] rounded-xl bg-brand-600 px-4 py-2.5 text-sm text-white shadow-sm;
+  }
+
+  /* 聊天气泡 - AI */
+  .bubble-ai {
+    @apply inline-block max-w-[90%] rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-card;
+  }
+
+  /* 状态提示条（错误 / 成功 / 警告） */
+  .alert-error {
+    @apply rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700;
+  }
+  .alert-success {
+    @apply rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700;
+  }
+  .alert-warn {
+    @apply rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700;
+  }
+
+  /* 空状态占位 */
+  .empty-state {
+    @apply flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50/50 px-6 py-12 text-center text-sm text-gray-400;
+  }
+}
+
+/* ============================================================
+   动画
+   ============================================================ */
 @keyframes chart-grow {
   from {
     opacity: 0.4;
@@ -35,4 +118,20 @@ body {
 
 .chart-streaming {
   animation: chart-grow 0.3s ease-out;
+}
+
+/* 滚动条美化（可选，不影响功能） */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }

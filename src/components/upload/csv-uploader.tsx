@@ -64,8 +64,28 @@ export function CsvUploader({ loading, setLoading, onUploaded }: Props) {
         const file = e.dataTransfer.files[0];
         if (file) void handleFile(file);
       }}
-      className="rounded-xl border-2 border-dashed border-gray-300 p-10 text-center transition-colors hover:border-brand-500"
+      className="group flex flex-col items-center rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 px-6 py-10 text-center transition-all hover:border-brand-400 hover:bg-brand-50/30 hover:shadow-card"
     >
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50 text-brand-500 transition-colors group-hover:bg-brand-100">
+        <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+          />
+        </svg>
+      </div>
+
+      <button type="button" onClick={() => inputRef.current?.click()} className="btn-primary mb-2">
+        选择 CSV 文件
+      </button>
+      <p className="text-xs text-gray-400">或拖拽到此处</p>
+
+      {progress > 0 && <p className="mt-3 text-xs text-gray-500">已解析 {progress} 行…</p>}
+      {loading && <p className="mt-2 text-xs font-medium text-brand-600">正在创建会话…</p>}
+      {error && <p className="alert-error mt-3 py-2 text-xs">{error}</p>}
+
       <input
         ref={inputRef}
         type="file"
@@ -76,18 +96,6 @@ export function CsvUploader({ loading, setLoading, onUploaded }: Props) {
           if (file) void handleFile(file);
         }}
       />
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        className="text-brand-600 hover:underline"
-      >
-        选择 CSV 文件
-      </button>
-      <span className="text-gray-400"> 或拖拽到此处</span>
-
-      {progress > 0 && <p className="mt-2 text-xs text-gray-500">已解析 {progress} 行…</p>}
-      {loading && <p className="mt-2 text-xs text-brand-600">正在创建会话…</p>}
-      {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
     </div>
   );
 }

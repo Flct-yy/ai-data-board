@@ -68,19 +68,19 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="mb-1 block text-sm text-gray-600">邮箱</label>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700">邮箱</label>
         <input
           type="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
           required
           autoComplete="email"
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
+          className="input"
         />
       </div>
 
       <div>
-        <label className="mb-1 block text-sm text-gray-600">密码</label>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700">密码</label>
         <input
           type="password"
           value={password}
@@ -88,18 +88,23 @@ export function LoginForm() {
           required
           minLength={6}
           autoComplete={mode === "signin" ? "current-password" : "new-password"}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
+          className="input"
         />
       </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
-      {notice && <p className="text-sm text-green-600">{notice}</p>}
+      {error && (
+        <div className="alert-error">
+          <span className="font-medium">登录失败</span>
+          <span className="ml-1 opacity-80">：{error}</span>
+        </div>
+      )}
+      {notice && (
+        <div className="alert-success">
+          <span>{notice}</span>
+        </div>
+      )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
-      >
+      <button type="submit" disabled={loading} className="btn-primary w-full">
         {loading
           ? mode === "signin"
             ? "登录中…"
@@ -116,7 +121,7 @@ export function LoginForm() {
           setError("");
           setNotice("");
         }}
-        className="w-full text-center text-sm text-brand-600 hover:underline"
+        className="w-full text-center text-sm text-brand-600 transition-colors hover:text-brand-700 focus-visible:outline-none focus-visible:text-brand-700"
       >
         {mode === "signin" ? "没有账号？注册" : "已有账号？登录"}
       </button>
