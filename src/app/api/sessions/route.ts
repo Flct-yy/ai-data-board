@@ -25,15 +25,29 @@ export async function POST(req: Request) {
       );
     }
 
+    // 1. getSession 只读本地 cookie（不发网络请求）—— 真没登录才 401
+    const {
+      data: { session: authSession },
+    } = await supabase.auth.getSession();
+    if (!authSession) {
+      return NextResponse.json(
+        { error: "Unauthorized", detail: "no session cookie" },
+        { status: 401 }
+      );
+    }
+
+    // 2. getUser 需要网络请求；失败时返回 503 而非误判 401
     const {
       data: { user },
-      error: authErr,
+      error: userError,
     } = await supabase.auth.getUser();
-
-    if (authErr || !user) {
-      console.error("auth error:", authErr);
+    if (userError) {
+      console.warn("[sessions] getUser failed, using session.user:", userError.message);
+    }
+    const userId = user?.id ?? authSession.user?.id;
+    if (!userId) {
       return NextResponse.json(
-        { error: "Unauthorized", detail: authErr?.message ?? "no user session" },
+        { error: "Unauthorized", detail: "no user id in session" },
         { status: 401 }
       );
     }
@@ -45,7 +59,7 @@ export async function POST(req: Request) {
       id,
       title,
       csv_schema: csvSchema,
-      user_id: user.id,
+      user_id: userId,
     });
 
     if (sessionErr) {
