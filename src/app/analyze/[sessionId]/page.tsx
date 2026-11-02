@@ -1,4 +1,5 @@
 import { ChatPanel } from "@/components/chat/chat-panel";
+import { toUIMessages, type HistoryRow } from "@/lib/chat/history";
 import type { Session } from "@/types";
 import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
@@ -17,6 +18,13 @@ export default async function AnalyzePage({ params }: { params: { sessionId: str
 
   if (!session) notFound();
 
+  // 加载历史消息，传给前端恢复对话
+  const { data: historyRows } = await supabase
+    .from("messages")
+    .select("id,role,content,tool_call_id")
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: true });
+
   return (
     <main className="mx-auto flex h-screen max-w-7xl flex-col px-4 py-4">
       <header className="mb-4 flex items-center justify-between">
@@ -30,7 +38,11 @@ export default async function AnalyzePage({ params }: { params: { sessionId: str
           历史报告
         </a>
       </header>
-      <ChatPanel sessionId={sessionId} csvSchema={session.csv_schema} />
+      <ChatPanel
+        sessionId={sessionId}
+        csvSchema={session.csv_schema}
+        initialMessages={toUIMessages((historyRows ?? []) as HistoryRow[])}
+      />
     </main>
   );
 }

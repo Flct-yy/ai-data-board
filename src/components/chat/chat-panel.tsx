@@ -6,10 +6,12 @@ import { useEffect, useState, useCallback } from "react";
 import { StreamingChart } from "@/components/chart/streaming-chart";
 import { ToolTrace } from "@/components/chat/tool-trace";
 import type { ChartSpec, CsvSchema } from "@/types";
+import { Markdown } from "@/components/chat/markdown";
 
 interface Props {
   sessionId: string;
   csvSchema: CsvSchema | null;
+  initialMessages?: UIMessage[];
 }
 
 // 类型谓词：过滤并收窄 tool- 开头的 part
@@ -23,7 +25,7 @@ function isToolPart(
  * 左栏对话流（含工具调用轨迹），右栏图表渐进出现。
  * 圈选图表 → 注入提问 → agent 续答。
  */
-export function ChatPanel({ sessionId, csvSchema }: Props) {
+export function ChatPanel({ sessionId, csvSchema, initialMessages }: Props) {
   const [charts, setCharts] = useState<ChartSpec[]>([]);
   const [input, setInput] = useState("");
 
@@ -32,6 +34,7 @@ export function ChatPanel({ sessionId, csvSchema }: Props) {
       api: "/api/chat",
       body: { sessionId },
     }),
+    messages: initialMessages,
   });
 
   const isLoading = status === "submitted" || status === "streaming";
@@ -103,7 +106,7 @@ export function ChatPanel({ sessionId, csvSchema }: Props) {
                       : "border border-gray-200 bg-white"
                   }`}
                 >
-                  {textParts}
+                  {m.role === "user" ? textParts.trim() : <Markdown>{textParts}</Markdown>}
                 </div>
                 {m.role === "assistant" && toolParts.length > 0 && <ToolTrace parts={toolParts} />}
               </div>
