@@ -47,9 +47,9 @@ export default async function HistoryPage() {
       )}
 
       {!error && isEmpty && (
-        <div className="empty-state min-h-[200px]">
+        <div className="empty-state min-h-50">
           <svg
-            className="mb-3 h-10 w-10 text-gray-300"
+            className="mb-3 size-10 text-gray-300"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -64,7 +64,7 @@ export default async function HistoryPage() {
           <p className="text-gray-500">还没有分析报告</p>
           <a
             href="/"
-            className="mt-2 text-sm text-brand-600 underline underline-offset-2 hover:text-brand-700"
+            className="text-brand-600 hover:text-brand-700 mt-2 text-sm underline underline-offset-2"
           >
             上传 CSV 开始第一次分析 →
           </a>
@@ -76,7 +76,7 @@ export default async function HistoryPage() {
           {(reports as AnalysisReport[])?.map(r => (
             <li
               key={r.id}
-              className="card cursor-pointer p-4 transition-all hover:border-brand-300 hover:shadow-card-hover"
+              className="card hover:border-brand-300 hover:shadow-card-hover cursor-pointer p-4 transition-all"
             >
               <p className="font-medium text-gray-900">{r.question}</p>
               <p className="mt-1.5 line-clamp-2 text-sm text-gray-500">{r.answer}</p>

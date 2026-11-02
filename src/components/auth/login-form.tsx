@@ -121,7 +121,7 @@ export function LoginForm() {
           setError("");
           setNotice("");
         }}
-        className="w-full text-center text-sm text-brand-600 transition-colors hover:text-brand-700 focus-visible:outline-none focus-visible:text-brand-700"
+        className="text-brand-600 hover:text-brand-700 focus-visible:text-brand-700 w-full text-center text-sm transition-colors focus-visible:outline-none"
       >
         {mode === "signin" ? "没有账号？注册" : "已有账号？登录"}
       </button>

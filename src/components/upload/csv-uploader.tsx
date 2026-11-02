@@ -64,10 +64,10 @@ export function CsvUploader({ loading, setLoading, onUploaded }: Props) {
         const file = e.dataTransfer.files[0];
         if (file) void handleFile(file);
       }}
-      className="group flex flex-col items-center rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 px-6 py-10 text-center transition-all hover:border-brand-400 hover:bg-brand-50/30 hover:shadow-card"
+      className="group hover:border-brand-400 hover:bg-brand-50/30 hover:shadow-card flex flex-col items-center rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 px-6 py-10 text-center transition-all"
     >
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50 text-brand-500 transition-colors group-hover:bg-brand-100">
-        <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="bg-brand-50 text-brand-500 group-hover:bg-brand-100 mb-4 flex size-14 items-center justify-center rounded-xl transition-colors">
+        <svg className="size-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -83,7 +83,7 @@ export function CsvUploader({ loading, setLoading, onUploaded }: Props) {
       <p className="text-xs text-gray-400">或拖拽到此处</p>
 
       {progress > 0 && <p className="mt-3 text-xs text-gray-500">已解析 {progress} 行…</p>}
-      {loading && <p className="mt-2 text-xs font-medium text-brand-600">正在创建会话…</p>}
+      {loading && <p className="text-brand-600 mt-2 text-xs font-medium">正在创建会话…</p>}
       {error && <p className="alert-error mt-3 py-2 text-xs">{error}</p>}
 
       <input

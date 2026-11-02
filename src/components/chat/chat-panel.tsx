@@ -99,9 +99,9 @@ export function ChatPanel({ sessionId, csvSchema, initialMessages }: Props) {
       <div className="flex w-full flex-col md:w-1/2">
         <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto pr-1 md:pr-2">
           {messages.length === 0 && (
-            <div className="empty-state h-full min-h-[200px]">
+            <div className="empty-state h-full min-h-50">
               <svg
-                className="mb-3 h-8 w-8 text-gray-300"
+                className="mb-3 size-8 text-gray-300"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -166,9 +166,9 @@ export function ChatPanel({ sessionId, csvSchema, initialMessages }: Props) {
         )}
 
         {charts.length === 0 && streamingChunk == null ? (
-          <div className="empty-state h-full min-h-[280px]">
+          <div className="empty-state h-full min-h-70">
             <svg
-              className="mb-3 h-8 w-8 text-gray-300"
+              className="mb-3 size-8 text-gray-300"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

@@ -16,11 +16,11 @@ export function ToolTrace({ parts }: { parts: ToolUIPart<any>[] }) {
   if (!parts.length) return null;
 
   return (
-    <div className="mt-2 ml-1 border-l-2 border-brand-200 pl-3">
+    <div className="border-brand-200 mt-2 ml-1 border-l-2 pl-3">
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1 text-xs text-gray-500 transition-colors hover:text-brand-600 focus-visible:outline-none focus-visible:text-brand-600"
+        className="hover:text-brand-600 focus-visible:text-brand-600 flex items-center gap-1 text-xs text-gray-500 transition-colors focus-visible:outline-none"
       >
         <span
           className={`inline-block transition-transform duration-150 ${open ? "rotate-90" : ""}`}

@@ -18,9 +18,9 @@ export default async function LoginPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-4 py-12">
       <header className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-100">
+        <div className="bg-brand-100 mx-auto mb-4 flex size-12 items-center justify-center rounded-xl">
           <svg
-            className="h-6 w-6 text-brand-600"
+            className="text-brand-600 size-6"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

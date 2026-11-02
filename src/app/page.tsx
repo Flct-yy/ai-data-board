@@ -44,7 +44,7 @@ export default function HomePage() {
           {questions.map((question, index) => (
             <li
               key={index}
-              className="card cursor-default p-3 text-gray-600 transition-colors hover:border-brand-200 hover:bg-brand-50/30"
+              className="card hover:border-brand-200 hover:bg-brand-50/30 cursor-default p-3 text-gray-600 transition-colors"
             >
               {question}
             </li>

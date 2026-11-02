@@ -10,13 +10,13 @@ export function TypingIndicator({ label = "AI 正在思考" }: Props) {
     <div
       role="status"
       aria-live="polite"
-      className="inline-flex items-center gap-2.5 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-500 shadow-card"
+      className="shadow-card inline-flex items-center gap-2.5 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-500"
     >
       <span className="text-gray-600">{label}</span>
       <span aria-hidden="true" className="inline-flex items-center gap-1 motion-reduce:hidden">
-        <span className="h-1.5 w-1.5 animate-bounce-high rounded-full bg-brand-500 [animation-delay:-0.3s]" />
-        <span className="h-1.5 w-1.5 animate-bounce-high rounded-full bg-brand-500 [animation-delay:-0.15s]" />
-        <span className="h-1.5 w-1.5 animate-bounce-high rounded-full bg-brand-500" />
+        <span className="animate-bounce-high bg-brand-500 size-1.5 rounded-full [animation-delay:-0.3s]" />
+        <span className="animate-bounce-high bg-brand-500 size-1.5 rounded-full [animation-delay:-0.15s]" />
+        <span className="animate-bounce-high bg-brand-500 size-1.5 rounded-full" />
       </span>
       <span aria-hidden="true" className="hidden motion-reduce:inline">
         …

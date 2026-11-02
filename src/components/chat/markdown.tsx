@@ -12,26 +12,22 @@ import remarkGfm from "remark-gfm";
  */
 const components: Components = {
   h1: ({ children }) => (
-    <h1 className="mb-3 mt-2 text-lg font-semibold text-gray-900">{children}</h1>
+    <h1 className="mt-2 mb-3 text-lg font-semibold text-gray-900">{children}</h1>
   ),
-  h2: ({ children }) => (
-    <h2 className="mb-2 mt-2 text-base font-semibold text-gray-900">{children}</h2>
-  ),
-  h3: ({ children }) => (
-    <h3 className="mb-1.5 mt-1.5 text-sm font-semibold text-gray-900">{children}</h3>
-  ),
+  h2: ({ children }) => <h2 className="my-2 text-base font-semibold text-gray-900">{children}</h2>,
+  h3: ({ children }) => <h3 className="my-1.5 text-sm font-semibold text-gray-900">{children}</h3>,
   p: ({ children }) => <p className="my-2 leading-relaxed">{children}</p>,
   ul: ({ children }) => <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>,
   ol: ({ children }) => <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>,
   li: ({ children }) => <li className="leading-relaxed">{children}</li>,
   strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
-  em: ({ children }) => <em className="italic text-gray-700">{children}</em>,
+  em: ({ children }) => <em className="text-gray-700 italic">{children}</em>,
   a: ({ href, children }) => (
     <a
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="text-brand-600 underline underline-offset-2 hover:text-brand-700"
+      className="text-brand-600 hover:text-brand-700 underline underline-offset-2"
     >
       {children}
     </a>
@@ -47,7 +43,7 @@ const components: Components = {
     </code>
   ),
   blockquote: ({ children }) => (
-    <blockquote className="my-2 border-l-3 border-brand-300 bg-brand-50/40 py-1 pl-3 italic text-gray-600">
+    <blockquote className="border-brand-300 bg-brand-50/40 my-2 border-l-3 py-1 pl-3 text-gray-600 italic">
       {children}
     </blockquote>
   ),
@@ -73,7 +69,7 @@ const components: Components = {
  */
 export function Markdown({ children }: { children: string }) {
   return (
-    <div className="break-words text-sm leading-relaxed text-gray-800">
+    <div className="text-sm leading-relaxed wrap-break-word text-gray-800">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {children}
       </ReactMarkdown>
