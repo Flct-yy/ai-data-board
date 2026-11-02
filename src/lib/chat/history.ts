@@ -55,7 +55,6 @@ export function toUIMessages(rows: HistoryRow[]): UIMessage[] {
       type: `tool-${toolName}`,
       toolCallId: row.tool_call_id ?? `tool-${row.id}`,
       state: "output-available",
-      providerExecuted: true,
       input: parsed.input,
       output: parsed.output,
     } as UIMessage["parts"][number]);
