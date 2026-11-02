@@ -29,7 +29,7 @@ export function ChatPanel({ sessionId, csvSchema, initialMessages }: Props) {
   const [charts, setCharts] = useState<ChartSpec[]>([]);
   const [input, setInput] = useState("");
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
       body: { sessionId },
@@ -112,6 +112,11 @@ export function ChatPanel({ sessionId, csvSchema, initialMessages }: Props) {
               </div>
             );
           })}
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+              请求失败：{error.message}
+            </div>
+          )}
         </div>
         <form onSubmit={handleFormSubmit} className="mt-3 flex gap-2">
           <input

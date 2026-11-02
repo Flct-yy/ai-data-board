@@ -140,6 +140,14 @@ export async function POST(req: Request) {
 
   // 把 streamText 的底层流转成 UI-message 协议流式返回（前端零改动）
   return createUIMessageStreamResponse({
-    stream: toUIMessageStream({ stream: result.stream, tools }),
+    stream: toUIMessageStream({
+      stream: result.stream,
+      tools,
+      // 默认 onError 只返回 "An error occurred."，会把真实原因吞掉
+      onError: error => {
+        console.error("[agent] stream error:", error);
+        return error instanceof Error ? error.message : "模型调用失败";
+      },
+    }),
   });
 }
