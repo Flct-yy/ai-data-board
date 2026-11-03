@@ -32,11 +32,16 @@ create table if not exists messages (
   role text not null check (role in ('user','assistant','tool')),
   content text not null,
   tool_call_id text,
+  -- 同一轮写入的 user/assistant/tool 共享 created_at，seq 提供稳定顺序
+  seq integer not null default 0,
   created_at timestamptz not null default now()
 );
 
-create index if not exists messages_session_id_created_at_idx
-  on messages (session_id, created_at);
+create index if not exists messages_session_id_created_at_seq_idx
+  on messages (session_id, created_at, seq);
+
+create index if not exists messages_session_id_seq_idx
+  on messages (session_id, seq);
 
 -- ============ 分析报告表 ============
 create table if not exists reports (
