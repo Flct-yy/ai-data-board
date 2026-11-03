@@ -1,4 +1,5 @@
 import { ChatPanel } from "@/components/chat/chat-panel";
+import { DataProfilePanel } from "@/components/upload/data-profile";
 import { toUIMessages, type HistoryRow } from "@/lib/chat/history";
 import type { Session } from "@/types";
 import { notFound, redirect } from "next/navigation";
@@ -58,6 +59,7 @@ export default async function AnalyzePage({ params }: { params: { sessionId: str
           历史报告
         </a>
       </header>
+      <DataProfilePanel profile={session.csv_schema?.profile} />
       <ChatPanel
         sessionId={sessionId}
         csvSchema={session.csv_schema}
