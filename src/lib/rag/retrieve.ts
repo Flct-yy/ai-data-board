@@ -84,10 +84,11 @@ export async function indexReport(
     model: bgeEmbed,
     value: content.slice(0, 8000),
   });
-  await supabase.from("report_chunks").insert({
+  const { error } = await supabase.from("report_chunks").insert({
     report_id: reportId,
     session_id: sessionId,
     content,
     embedding,
   });
+  if (error) throw error;
 }

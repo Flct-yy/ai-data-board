@@ -4,6 +4,29 @@ export interface CsvColumn {
   sample: unknown[];
 }
 
+export interface ColumnProfile {
+  name: string;
+  type: CsvColumn["type"];
+  /** 缺失率，0-1 */
+  missingRate: number;
+  /** 高基数字段超过统计上限时，Top 值不完整 */
+  highCardinality?: boolean;
+  topValues?: Array<{ value: string; count: number }>;
+  min?: number;
+  max?: number;
+  mean?: number;
+  /** 偏离均值超过 2 个标准差的数值个数（样本量 >= 20 时才计算） */
+  outlierCount?: number;
+}
+
+export interface DataProfile {
+  rowCount: number;
+  columnCount: number;
+  columns: ColumnProfile[];
+  /** 列数超过展示上限时截断 */
+  truncated: boolean;
+}
+
 export interface CsvSchema {
   fileName: string;
   rowCount: number;
@@ -11,6 +34,8 @@ export interface CsvSchema {
   headers: string[];
   /** 存到 Supabase 后用 report 表做 RAG 检索的预览文本 */
   preview: string;
+  /** 上传时在 Worker 里算好的紧凑数据体检，老数据可能没有 */
+  profile?: DataProfile;
 }
 
 export interface Session {
