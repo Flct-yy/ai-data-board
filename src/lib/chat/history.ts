@@ -7,6 +7,30 @@ export interface HistoryRow {
   content: string;
   /** tool 行必填：OpenAI 兼容的 tool_call_id，用于回放与去重 */
   tool_call_id?: string | null;
+  /** 同一轮写入的 created_at 相同，seq 提供稳定顺序 */
+  seq?: number | null;
+  created_at?: string | null;
+}
+
+/**
+ * 按 (created_at, seq) 排序；seq 缺失时保持输入顺序。
+ * 旧数据没有 seq 时仍可回放，只是同一时间戳内的顺序依赖数据库返回顺序。
+ */
+export function sortHistoryRows(rows: HistoryRow[]): HistoryRow[] {
+  return rows
+    .map((row, index) => ({ row, index }))
+    .sort((a, b) => {
+      const at = a.row.created_at ?? "";
+      const bt = b.row.created_at ?? "";
+      if (at !== bt) return at < bt ? -1 : 1;
+
+      const as = a.row.seq ?? Number.MAX_SAFE_INTEGER;
+      const bs = b.row.seq ?? Number.MAX_SAFE_INTEGER;
+      if (as !== bs) return as - bs;
+
+      return a.index - b.index;
+    })
+    .map(item => item.row);
 }
 
 /** onEnd 里序列化到 tool 行 content 的 JSON 结构 */
@@ -28,7 +52,7 @@ interface PersistedTool {
 export function toUIMessages(rows: HistoryRow[]): UIMessage[] {
   const result: UIMessage[] = [];
 
-  for (const row of rows) {
+  for (const row of sortHistoryRows(rows)) {
     if (row.role === "user" || row.role === "assistant") {
       result.push({
         id: row.id,

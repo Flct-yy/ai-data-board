@@ -37,9 +37,10 @@ export default async function AnalyzePage({ params }: { params: { sessionId: str
   // 加载历史消息，传给前端恢复对话
   const { data: historyRows, error: historyErr } = await supabase
     .from("messages")
-    .select("id,role,content,tool_call_id")
+    .select("id,role,content,tool_call_id,seq,created_at")
     .eq("session_id", sessionId)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .order("seq", { ascending: true });
 
   if (historyErr) {
     // 历史消息加载失败不阻断，前端至少能正常开始新对话

@@ -78,14 +78,32 @@ export async function POST(req: Request) {
           .trim();
 
         // 持久化消息到数据库
-        // 包含用户问题和模型回复
+        // 同一轮 insert 的 created_at 相同，用 seq 显式递增保证回放顺序
+        const { data: lastSeq, error: seqError } = await supabase
+          .from("messages")
+          .select("seq")
+          .eq("session_id", sessionId)
+          .order("seq", { ascending: false })
+          .limit(1)
+          .maybeSingle<{ seq: number }>();
+        if (seqError) {
+          console.warn("[agent] seq query error:", seqError);
+        }
+        let nextSeq = (lastSeq?.seq ?? 0) + 1;
+
         const messageRows = [
           {
             session_id: sessionId,
             role: "user" as const,
             content: question || "(empty question)",
+            seq: nextSeq++,
           },
-          { session_id: sessionId, role: "assistant" as const, content: text || "" },
+          {
+            session_id: sessionId,
+            role: "assistant" as const,
+            content: text || "",
+            seq: nextSeq++,
+          },
         ];
         // 工具信息也落库：每条工具调用存一条 role='tool' 行（messages 表支持 tool 角色 + tool_call_id 列）。
         // 用 JSON 序列化 input/output，便于调试与回放。
@@ -99,17 +117,22 @@ export async function POST(req: Request) {
           }),
           tool_call_id: tr.toolCallId ?? null,
         }));
-        await supabase.from("messages").insert([...messageRows, ...toolRows]);
+        const { error: messagesError } = await supabase
+          .from("messages")
+          .insert([...messageRows, ...toolRows]);
+        if (messagesError) {
+          console.error("[agent] messages insert error:", messagesError);
+        }
 
-        // 提取 chart spec 到数据库
-        // 从所有 toolResults 里提取 make_chart 的 output
+        // 提取 chart spec：统一过 Zod 校验，非法 spec 丢弃，避免污染 reports
         const chartSpecs: ChartSpec[] = [];
         for (const tr of toolResults) {
-          if (tr.toolName === "make_chart") {
-            const output = tr.output as unknown as ChartSpec | undefined;
-            if (output && typeof output === "object" && "type" in output) {
-              chartSpecs.push(output);
-            }
+          if (tr.toolName !== "make_chart") continue;
+          const parsed = chartSpecSchema.safeParse(tr.output);
+          if (parsed.success) {
+            chartSpecs.push(parsed.data as ChartSpec);
+          } else {
+            console.warn("[agent] invalid chart spec dropped:", parsed.error.issues);
           }
         }
 
