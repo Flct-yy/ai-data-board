@@ -2,6 +2,7 @@ import { ChatPanel } from "@/components/chat/chat-panel";
 import { DataProfilePanel } from "@/components/upload/data-profile";
 import { toUIMessages, type HistoryRow } from "@/lib/chat/history";
 import type { Session } from "@/types";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
@@ -56,11 +57,20 @@ export default async function AnalyzePage({ params }: { params: { sessionId: str
             {session.csv_schema?.fileName} · {session.csv_schema?.rowCount} 行
           </p>
         </div>
-        <a href="/history" className="text-brand-600 text-sm hover:underline">
-          历史报告
-        </a>
+        <div className="flex items-center gap-3">
+          <Link href="/sessions" className="text-brand-600 text-sm hover:underline">
+            我的数据集
+          </Link>
+          <Link href="/history" className="text-brand-600 text-sm hover:underline">
+            历史报告
+          </Link>
+        </div>
       </header>
-      <DataProfilePanel profile={session.csv_schema?.profile} />
+      <DataProfilePanel
+        profile={session.csv_schema?.profile}
+        sessionId={sessionId}
+        glossary={session.csv_schema?.glossary}
+      />
       <ChatPanel
         sessionId={sessionId}
         csvSchema={session.csv_schema}

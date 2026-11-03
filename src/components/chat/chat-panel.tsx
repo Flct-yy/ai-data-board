@@ -2,12 +2,14 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { StreamingChart } from "@/components/chart/streaming-chart";
 import { ToolTrace } from "@/components/chat/tool-trace";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { shouldShowTypingIndicator } from "@/lib/chat/typing";
+import { suggestQuestions } from "@/lib/csv/suggestions";
 import type { ChartSpec, CsvSchema } from "@/types";
+import type { SelectionRange } from "@/lib/chart/selection";
 import { Markdown } from "@/components/chat/markdown";
 
 interface Props {
@@ -22,14 +24,39 @@ function isToolPart(
 ): p is Extract<UIMessage["parts"][number], { type: `tool-${string}` }> {
   return p.type.startsWith("tool-");
 }
+
+function SuggestionChips({
+  questions,
+  onPick,
+  className = "justify-center",
+}: {
+  questions: string[];
+  onPick: (question: string) => void;
+  className?: string;
+}) {
+  return (
+    <div className={`flex flex-wrap gap-2 ${className}`}>
+      {questions.map(question => (
+        <button
+          key={question}
+          type="button"
+          onClick={() => onPick(question)}
+          className="hover:border-brand-300 hover:text-brand-700 focus-visible:ring-brand-500 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-600 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+        >
+          {question}
+        </button>
+      ))}
+    </div>
+  );
+}
 /**
  * 对话面板 + 图表区双栏布局。
  * 左栏对话流（含工具调用轨迹），右栏图表渐进出现。
  * 圈选图表 → 注入提问 → agent 续答。
  */
 export function ChatPanel({ sessionId, csvSchema, initialMessages }: Props) {
-  const [charts, setCharts] = useState<ChartSpec[]>([]);
   const [input, setInput] = useState("");
+  const suggestions = useMemo(() => (csvSchema ? suggestQuestions(csvSchema) : []), [csvSchema]);
 
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
@@ -53,7 +80,7 @@ export function ChatPanel({ sessionId, csvSchema, initialMessages }: Props) {
     if (container) container.scrollTop = container.scrollHeight;
   }, [showTyping]);
 
-  useEffect(() => {
+  const charts = useMemo(() => {
     const specs: ChartSpec[] = [];
     for (const m of messages) {
       if (m.role !== "assistant" || !m.parts) continue;
@@ -63,7 +90,7 @@ export function ChatPanel({ sessionId, csvSchema, initialMessages }: Props) {
         }
       }
     }
-    setCharts(specs);
+    return specs;
   }, [messages]);
 
   // 当前正在流式输入的 tool part（取最新一条即可）
@@ -74,15 +101,16 @@ export function ChatPanel({ sessionId, csvSchema, initialMessages }: Props) {
       for (const part of m.parts) {
         if (part.type === "tool-make_chart" && part.state === "input-streaming") {
           // 字段名以你的 AI SDK 版本为准：inputText / argsText / input
-          return (part as any).inputText ?? (part as any).argsText ?? "";
+          const candidate = part as { inputText?: string; argsText?: string };
+          return candidate.inputText ?? candidate.argsText ?? "";
         }
       }
     }
     return null;
   })();
 
-  const onSelectRange = useCallback((range: { xKey: string; values: string[] }) => {
-    setInput(`请重点分析 ${range.xKey} 为 ${range.values.join("、")} 的数据，解释原因`);
+  const onSelectRange = useCallback((range: SelectionRange) => {
+    setInput(`请重点分析以下数据并解释原因：${range.text}。`);
   }, []);
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -114,7 +142,11 @@ export function ChatPanel({ sessionId, csvSchema, initialMessages }: Props) {
                 />
               </svg>
               <p>问点什么开始分析吧</p>
-              <p className="mt-1 text-xs text-gray-400">例如「分析各区域销售占比」</p>
+              {suggestions.length > 0 && (
+                <div className="mt-3 w-full">
+                  <SuggestionChips questions={suggestions} onPick={setInput} />
+                </div>
+              )}
             </div>
           )}
           {messages.map((m, index) => {
@@ -146,11 +178,17 @@ export function ChatPanel({ sessionId, csvSchema, initialMessages }: Props) {
             </div>
           )}
         </div>
+        {messages.length === 0 && suggestions.length > 0 && (
+          <div className="mt-3">
+            <p className="mb-1.5 text-xs text-gray-400">推荐问题</p>
+            <SuggestionChips questions={suggestions} onPick={setInput} className="justify-start" />
+          </div>
+        )}
         <form onSubmit={handleFormSubmit} className="mt-4 flex gap-2">
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="问点什么… 例如「分析各品类的销售趋势」"
+            placeholder="问点什么… 例如「这份数据的趋势和异常」"
             className="input flex-1"
           />
           <button type="submit" disabled={isLoading} className="btn-primary shrink-0">
@@ -181,7 +219,7 @@ export function ChatPanel({ sessionId, csvSchema, initialMessages }: Props) {
               />
             </svg>
             <p>AI 生成的图表会在这里出现</p>
-            <p className="mt-1 text-xs text-gray-400">可点击柱子圈选后注入上下文续问</p>
+            <p className="mt-1 text-xs text-gray-400">点击柱子 / 数据点 / 扇区可选中后追问</p>
           </div>
         ) : (
           charts.map((spec, i) => (

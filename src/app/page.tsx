@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CsvUploader } from "@/components/upload/csv-uploader";
 import { UserMenu } from "@/components/auth/user-menu";
@@ -8,22 +8,17 @@ import { UserMenu } from "@/components/auth/user-menu";
 export default function HomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-  const [sessionId, setSessionId] = useState<string>();
 
   const onUploaded = (sessionId: string) => {
-    setSessionId(sessionId);
     router.push(`/analyze/${sessionId}`);
   };
 
-  const questions = useMemo(
-    () => [
-      "分析各区域销售占比",
-      "画出月度趋势并预测下季度",
-      "找出异常波动的品类",
-      "分析各品类销售占比",
-    ],
-    []
-  );
+  const questions = [
+    "这份数据最值得关注的结论是什么？",
+    "帮我检查缺失值、异常值和数据质量问题",
+    "先做一份整体数据概览",
+    "有哪些值得进一步分析的维度？",
+  ];
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-12 md:py-16">

@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { mergePartialSpec } from "@/lib/ai/chart-spec-schema";
 import { InteractiveChart } from "./interactive-chart";
 import type { ChartSpec } from "@/types";
+import type { SelectionRange } from "@/lib/chart/selection";
 import { useRef } from "react";
 
 interface Props {
@@ -11,8 +12,8 @@ interface Props {
   streamingJsonChunk?: string;
   /** 工具执行完后的最终 spec */
   finalSpec?: ChartSpec | null;
-  /** 圈选续问回调 */
-  onSelectRange?: (range: { xKey: string; values: string[] }) => void;
+  /** 选中续问回调 */
+  onSelectRange?: (range: SelectionRange) => void;
 }
 
 /**

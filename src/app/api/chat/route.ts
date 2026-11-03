@@ -11,6 +11,7 @@ import { createClient } from "@/utils/supabase/server";
 import { createTools } from "@/lib/ai/tools";
 import { buildSystemPrompt } from "@/lib/ai/prompts";
 import { chartSpecSchema } from "@/lib/ai/chart-spec-schema";
+import { prepareMessagesForModel } from "@/lib/ai/context";
 import { shouldPersistReport } from "@/lib/chat/report";
 import { indexReport } from "@/lib/rag/retrieve";
 import type { CsvSchema, Session, ChartSpec } from "@/types";
@@ -55,8 +56,9 @@ export async function POST(req: Request) {
   const csv = (session?.csv_schema as CsvSchema | null) ?? null;
   const tools = createTools(rows);
 
-  // convertToModelMessages 返回 Promise，需要 await
-  const modelMessages = await convertToModelMessages(messages);
+  // 只保留最近几轮完整对话，更早内容压成摘要；图表 data 不进上下文
+  // 在 user 边界切分，避免拆散 tool call / tool result 配对
+  const modelMessages = await convertToModelMessages(prepareMessagesForModel(messages));
 
   const result = streamText({
     model: deepSeek("deepseek-flash"),
@@ -164,7 +166,7 @@ export async function POST(req: Request) {
           } else if (report) {
             // 写入向量表供 RAG；失败只记录，不影响本次报告
             try {
-            await indexReport(report.id, sessionId, `${question}\n\n${text}`);
+              await indexReport(report.id, sessionId, `${question}\n\n${text}`);
             } catch (indexError) {
               console.error("[agent] report index error:", indexError);
             }

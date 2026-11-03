@@ -27,6 +27,15 @@ export interface DataProfile {
   truncated: boolean;
 }
 
+/** 用户维护的列口径：显示名 / 单位 / 业务说明，保存在 sessions.csv_schema.glossary */
+export interface ColumnGlossary {
+  label?: string;
+  unit?: string;
+  note?: string;
+}
+
+export type ColumnGlossaryMap = Record<string, ColumnGlossary>;
+
 export interface CsvSchema {
   fileName: string;
   rowCount: number;
@@ -36,6 +45,8 @@ export interface CsvSchema {
   preview: string;
   /** 上传时在 Worker 里算好的紧凑数据体检，老数据可能没有 */
   profile?: DataProfile;
+  /** 列口径，老会话没有该字段时按空对象处理 */
+  glossary?: ColumnGlossaryMap;
 }
 
 export interface Session {

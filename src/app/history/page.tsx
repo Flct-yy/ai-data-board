@@ -1,3 +1,4 @@
+import { ReportDeleteButton } from "@/components/report/report-delete-button";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import Link from "next/link";
@@ -6,7 +7,14 @@ import type { AnalysisReport } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function HistoryPage() {
+export default async function HistoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
+  const keyword = (q ?? "").trim().slice(0, 80);
+
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
@@ -22,20 +30,49 @@ export default async function HistoryPage() {
     console.warn("[history] getUser failed, keeping session cookie:", userError.message);
   }
 
-  const { data: reports, error } = await supabase
-    .from("reports")
-    .select("*")
+  let query = supabase.from("reports").select("*");
+
+  if (keyword) {
+    const safe = keyword.replace(/[%_,()*]/g, " ").trim();
+    if (safe) {
+      query = query.or(`question.ilike.%${safe}%,answer.ilike.%${safe}%`);
+    }
+  }
+
+  const { data: reports, error } = await query
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(50)
+    .returns<AnalysisReport[]>();
 
   const isEmpty = !reports || reports.length === 0;
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">历史分析报告</h1>
-        <p className="mt-1 text-sm text-gray-500">查看过往的分析记录与结论</p>
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">历史分析报告</h1>
+          <p className="mt-1 text-sm text-gray-500">查看过往的分析记录与结论</p>
+        </div>
+        <Link
+          href="/sessions"
+          className="text-brand-600 hover:text-brand-700 text-sm hover:underline"
+        >
+          我的数据集 →
+        </Link>
       </header>
+
+      <form method="get" className="mb-6 flex gap-2">
+        <input
+          name="q"
+          defaultValue={keyword}
+          placeholder="搜索问题或答案关键词…"
+          className="input flex-1"
+          aria-label="搜索报告"
+        />
+        <button type="submit" className="btn-secondary shrink-0">
+          搜索
+        </button>
+      </form>
 
       {error && (
         <div className="alert-error mb-6">
@@ -59,31 +96,35 @@ export default async function HistoryPage() {
               d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
             />
           </svg>
-          <p className="text-gray-500">还没有分析报告</p>
+          <p className="text-gray-500">{keyword ? "没有匹配的报告" : "还没有分析报告"}</p>
           <Link
-            href="/"
+            href={keyword ? "/history" : "/"}
             className="text-brand-600 hover:text-brand-700 mt-2 text-sm underline underline-offset-2"
           >
-            上传 CSV 开始第一次分析 →
+            {keyword ? "查看全部报告" : "上传 CSV 开始第一次分析 →"}
           </Link>
         </div>
       )}
 
       {!isEmpty && (
         <ul className="space-y-3">
-          {(reports as AnalysisReport[])?.map(r => (
-            <li key={r.id}>
-              <Link
-                href={`/reports/${r.id}`}
-                className="card hover:border-brand-300 hover:shadow-card-hover block p-4 transition-all"
-              >
-                <p className="font-medium text-gray-900">{r.question}</p>
-                <p className="mt-1.5 line-clamp-2 text-sm text-gray-500">{r.answer}</p>
-                <div className="mt-2.5 flex items-center justify-between text-xs text-gray-400">
-                  <time>{new Date(r.created_at).toLocaleString("zh-CN")}</time>
-                  {r.chart_specs?.length > 0 && <span>{r.chart_specs.length} 张图表</span>}
+          {reports.map(report => (
+            <li key={report.id}>
+              <div className="card hover:border-brand-300 hover:shadow-card-hover p-4 transition-all">
+                <div className="flex items-start justify-between gap-3">
+                  <Link href={`/reports/${report.id}`} className="block min-w-0 flex-1">
+                    <p className="font-medium text-gray-900">{report.question}</p>
+                    <p className="mt-1.5 line-clamp-2 text-sm text-gray-500">{report.answer}</p>
+                    <div className="mt-2.5 flex items-center justify-between text-xs text-gray-400">
+                      <time>{new Date(report.created_at).toLocaleString("zh-CN")}</time>
+                      {report.chart_specs?.length > 0 && (
+                        <span>{report.chart_specs.length} 张图表</span>
+                      )}
+                    </div>
+                  </Link>
+                  <ReportDeleteButton reportId={report.id} />
                 </div>
-              </Link>
+              </div>
             </li>
           ))}
         </ul>
