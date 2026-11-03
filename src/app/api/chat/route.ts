@@ -10,6 +10,8 @@ import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { createTools } from "@/lib/ai/tools";
 import { buildSystemPrompt } from "@/lib/ai/prompts";
+import { chartSpecSchema } from "@/lib/ai/chart-spec-schema";
+import { shouldPersistReport } from "@/lib/chat/report";
 import { indexReport } from "@/lib/rag/retrieve";
 import type { CsvSchema, Session, ChartSpec } from "@/types";
 import type { UIMessage } from "ai";
@@ -63,7 +65,8 @@ export async function POST(req: Request) {
     instructions: buildSystemPrompt(csv),
     messages: modelMessages,
     tools,
-    stopWhen: isStepCount(5), // ReAct 最多 5 轮 think-act-observe
+    // filter → time/group → chart → 总结 至少需要 4-5 步，留出重试余量，放宽到 7
+    stopWhen: isStepCount(7), // ReAct 最多 7 轮 think-act-observe
     // 完成后：持久化消息 + 提取 chart spec 存报告 + 写入向量表供 RAG
     onEnd: async ({ text, toolResults }) => {
       try {
@@ -116,6 +119,7 @@ export async function POST(req: Request) {
             output: tr.output,
           }),
           tool_call_id: tr.toolCallId ?? null,
+          seq: nextSeq++,
         }));
         const { error: messagesError } = await supabase
           .from("messages")
@@ -136,10 +140,15 @@ export async function POST(req: Request) {
           }
         }
 
-        // 存储报告到数据库
-        // 包含用户问题、模型回复、chart spec
-        if (question && (chartSpecs.length > 0 || text)) {
-          const { data: report } = await supabase
+        // 存储报告：有图表必写；纯文本要求有信息量且非寒暄/纯字段问答
+        if (
+          shouldPersistReport({
+            question: question ?? "",
+            answer: text ?? "",
+            chartCount: chartSpecs.length,
+          })
+        ) {
+          const { data: report, error: reportError } = await supabase
             .from("reports")
             .insert({
               session_id: sessionId,
@@ -150,9 +159,15 @@ export async function POST(req: Request) {
             .select("id")
             .single();
 
-          // 写入向量表供 RAG
-          if (report) {
+          if (reportError) {
+            console.error("[agent] report insert error:", reportError);
+          } else if (report) {
+            // 写入向量表供 RAG；失败只记录，不影响本次报告
+            try {
             await indexReport(report.id, sessionId, `${question}\n\n${text}`);
+            } catch (indexError) {
+              console.error("[agent] report index error:", indexError);
+            }
           }
         }
       } catch (err) {
