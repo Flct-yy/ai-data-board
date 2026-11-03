@@ -135,3 +135,23 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
+
+/* ============================================================
+   报告打印 / 导出 PDF：隐藏交互控件，避免图表卡片被截断
+   ============================================================ */
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  .report-page button,
+  .report-page details,
+  .report-page summary {
+    display: none !important;
+  }
+
+  .report-page .card {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+}

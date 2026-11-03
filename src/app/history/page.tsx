@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { AnalysisReport } from "@/types";
 
@@ -15,13 +16,10 @@ export default async function HistoryPage() {
   } = await supabase.auth.getSession();
   if (!session) redirect("/login");
 
-  // 2. getUser 需要网络请求；失败时不跳转，用 session.user 兜底
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  // 2. getUser 需要网络请求；失败时不跳转，只记录告警
+  const { error: userError } = await supabase.auth.getUser();
   if (userError) {
-    console.warn("[history] getUser failed, falling back to session.user:", userError.message);
+    console.warn("[history] getUser failed, keeping session cookie:", userError.message);
   }
 
   const { data: reports, error } = await supabase
@@ -62,27 +60,30 @@ export default async function HistoryPage() {
             />
           </svg>
           <p className="text-gray-500">还没有分析报告</p>
-          <a
+          <Link
             href="/"
             className="text-brand-600 hover:text-brand-700 mt-2 text-sm underline underline-offset-2"
           >
             上传 CSV 开始第一次分析 →
-          </a>
+          </Link>
         </div>
       )}
 
       {!isEmpty && (
         <ul className="space-y-3">
           {(reports as AnalysisReport[])?.map(r => (
-            <li
-              key={r.id}
-              className="card hover:border-brand-300 hover:shadow-card-hover cursor-pointer p-4 transition-all"
-            >
-              <p className="font-medium text-gray-900">{r.question}</p>
-              <p className="mt-1.5 line-clamp-2 text-sm text-gray-500">{r.answer}</p>
-              <time className="mt-2.5 block text-xs text-gray-400">
-                {new Date(r.created_at).toLocaleString("zh-CN")}
-              </time>
+            <li key={r.id}>
+              <Link
+                href={`/reports/${r.id}`}
+                className="card hover:border-brand-300 hover:shadow-card-hover block p-4 transition-all"
+              >
+                <p className="font-medium text-gray-900">{r.question}</p>
+                <p className="mt-1.5 line-clamp-2 text-sm text-gray-500">{r.answer}</p>
+                <div className="mt-2.5 flex items-center justify-between text-xs text-gray-400">
+                  <time>{new Date(r.created_at).toLocaleString("zh-CN")}</time>
+                  {r.chart_specs?.length > 0 && <span>{r.chart_specs.length} 张图表</span>}
+                </div>
+              </Link>
             </li>
           ))}
         </ul>
